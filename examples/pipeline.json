@@ -1,0 +1,81 @@
+{
+  "name": "nightly-revenue",
+  "nodes": [
+    {
+      "id": "raw_events",
+      "kind": "source",
+      "owner": "data-platform",
+      "writes": ["raw.events"],
+      "minutes": 2
+    },
+    {
+      "id": "crm_sync",
+      "kind": "source",
+      "owner": "crm-team",
+      "writes": ["raw.crm"],
+      "minutes": 3
+    },
+    {
+      "id": "clean_events",
+      "owner": "data-platform",
+      "reads": ["raw.events"],
+      "writes": ["stg.events"],
+      "minutes": 4
+    },
+    {
+      "id": "build_customers",
+      "owner": "crm-team",
+      "reads": ["raw.crm"],
+      "writes": ["dim.customers"],
+      "minutes": 6
+    },
+    {
+      "id": "fact_orders",
+      "owner": "data-platform",
+      "reads": ["stg.events", "dim.customers"],
+      "writes": ["fact.orders"],
+      "minutes": 9
+    },
+    {
+      "id": "forecast",
+      "owner": "ml-team",
+      "reads": ["fact.orders"],
+      "writes": ["ml.forecast"],
+      "minutes": 12
+    },
+    {
+      "id": "report_daily",
+      "kind": "sink",
+      "owner": "analytics",
+      "reads": ["fact.orders", "ml.forecast"],
+      "writes": ["report.daily"],
+      "minutes": 3
+    },
+    {
+      "id": "export_warehouse",
+      "kind": "export",
+      "owner": "",
+      "reads": ["fact.orders"],
+      "writes": ["wh.orders"],
+      "minutes": 5
+    },
+    {
+      "id": "scratch_preview",
+      "owner": "analytics",
+      "reads": ["stg.events"],
+      "writes": ["scratch.preview"],
+      "minutes": 1
+    }
+  ],
+  "edges": [
+    ["raw_events", "clean_events"],
+    ["crm_sync", "build_customers"],
+    ["clean_events", "fact_orders"],
+    ["build_customers", "fact_orders"],
+    ["fact_orders", "forecast"],
+    ["fact_orders", "report_daily"],
+    ["forecast", "report_daily"],
+    ["fact_orders", "export_warehouse"],
+    ["clean_events", "scratch_preview"]
+  ]
+}

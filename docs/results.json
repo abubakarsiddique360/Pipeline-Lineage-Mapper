@@ -1,0 +1,87 @@
+{
+  "pipeline": "nightly-revenue",
+  "nodes": 9,
+  "edges": 9,
+  "risk": 14,
+  "grade": "C",
+  "counts": {
+    "high": 0,
+    "medium": 1,
+    "low": 2
+  },
+  "waves": [
+    [
+      "crm_sync",
+      "raw_events"
+    ],
+    [
+      "build_customers",
+      "clean_events"
+    ],
+    [
+      "fact_orders",
+      "scratch_preview"
+    ],
+    [
+      "export_warehouse",
+      "forecast"
+    ],
+    [
+      "report_daily"
+    ]
+  ],
+  "critical_path": [
+    "crm_sync",
+    "build_customers",
+    "fact_orders",
+    "forecast",
+    "report_daily"
+  ],
+  "critical_minutes": 33.0,
+  "impact_fact_orders": [
+    "export_warehouse",
+    "forecast",
+    "report_daily"
+  ],
+  "cycle_example": {
+    "pipeline": "feedback-loop",
+    "risk": 33,
+    "grade": "D",
+    "counts": {
+      "high": 2,
+      "medium": 0,
+      "low": 1
+    },
+    "findings": [
+      "cycle",
+      "duplicate-writer",
+      "dangling-output"
+    ]
+  },
+  "findings": [
+    {
+      "code": "wide-fanout",
+      "severity": "medium",
+      "target": "fact_orders",
+      "message": "fact_orders feeds 3 branches directly (3 nodes in total downstream)",
+      "hint": "a failure here blocks every branch; split it or add an independent path",
+      "points": 8
+    },
+    {
+      "code": "no-owner",
+      "severity": "low",
+      "target": "export_warehouse",
+      "message": "export_warehouse has no owner",
+      "hint": "set owner so a failure has somewhere to go",
+      "points": 3
+    },
+    {
+      "code": "dangling-output",
+      "severity": "low",
+      "target": "scratch.preview",
+      "message": "scratch.preview is written by scratch_preview and read by nobody",
+      "hint": "drop the output, or the pipeline is paying to compute something unused",
+      "points": 3
+    }
+  ]
+}

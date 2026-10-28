@@ -1,0 +1,17 @@
+{
+  "name": "feedback-loop",
+  "nodes": [
+    { "id": "ingest", "kind": "source", "owner": "ingest-team", "writes": ["raw.clicks"], "minutes": 2 },
+    { "id": "score", "owner": "ml-team", "reads": ["raw.clicks"], "writes": ["ml.scores"], "minutes": 5 },
+    { "id": "adjust_bid", "owner": "ml-team", "reads": ["ml.scores"], "writes": ["bid.windows"], "minutes": 3 },
+    { "id": "retrain", "owner": "ml-team", "reads": ["bid.windows", "ml.scores"], "writes": ["ml.scores"], "minutes": 20 },
+    { "id": "publish", "owner": "analytics", "reads": ["ml.scores"], "writes": ["report.bids"], "minutes": 2 }
+  ],
+  "edges": [
+    ["ingest", "score"],
+    ["score", "adjust_bid"],
+    ["adjust_bid", "retrain"],
+    ["retrain", "score"],
+    ["score", "publish"]
+  ]
+}
